@@ -60,7 +60,9 @@ public enum GameMod {
 	SPUN_OUT      (Category.SPECIAL, 2, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_C, 0.9f,
 	              "SpunOut", "Spinners will be automatically completed."),
 	AUTO          (Category.SPECIAL, 3, GameImage.MOD_AUTO, "", 2048, Input.KEY_V, 1f,
-	              "Autoplay", "Watch a perfect automated play through the song.");
+				  "Autoplay", "Watch a perfect automated play through the song."),
+	AUTODANCE     (Category.SPECIAL, 4, GameImage.MOD_AUTOPILOT, "AD", 4, Input.KEY_B, 1f,
+				  "AutoDance", "Watch a perfect automated play through the song with some sweet moves.");
 
 	/** Mod categories. */
 	public enum Category {
@@ -367,12 +369,16 @@ public enum GameMod {
 		scoreMultiplier = speedMultiplier = difficultyMultiplier = -1f;
 
 		if (checkInverse) {
-			if (AUTO.isActive()) {
-				if (this == AUTO) {
+			if (AUTO.isActive() || AUTODANCE.isActive()) {
+				if (this == AUTO || this == AUTODANCE) {
 					SPUN_OUT.active = false;
 					SUDDEN_DEATH.active = false;
 					RELAX.active = false;
 					AUTOPILOT.active = false;
+					if(this == AUTO)
+						AUTODANCE.active = false;
+					else
+						AUTO.active = false;
 				} else if (this == SPUN_OUT || this == SUDDEN_DEATH || this == RELAX || this == AUTOPILOT)
 					this.active = false;
 			}
