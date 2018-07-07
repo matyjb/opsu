@@ -614,7 +614,7 @@ public class Slider implements GameObject {
 	public boolean update(int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
 		int repeatCount = hitObject.getRepeatCount();
 		int[] hitResultOffset = game.getHitResultOffsets();
-		boolean isAutoMod = GameMod.AUTO.isActive();
+		boolean isAutoMod = GameMod.AUTO.isActive() || GameMod.AUTODANCE.isActive();
 
 		if (!sliderClickedInitial) {
 			int time = hitObject.getTime();

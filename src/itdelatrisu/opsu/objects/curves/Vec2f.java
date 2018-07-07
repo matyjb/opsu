@@ -135,6 +135,38 @@ public class Vec2f {
 	public float len() { return (float) Math.sqrt(x * x + y * y); }
 
 	/**
+	 * Rotates a vector by given angle in radians
+	 * @return itself (for chaining)
+	 */
+	public Vec2f rotate(double angle) {
+		double x1 = Math.cos(angle)*x - Math.sin(angle)*y;
+		double y1 = Math.sin(angle)*x + Math.cos(angle)*y;
+
+		x = (float)x1;
+		y = (float)y1;
+
+		return this;
+	}
+
+	/**
+	 * Rotates a vector by given angle in radians by the origin
+	 * @return itself (for chaining)
+	 */
+	public Vec2f rotate(double angle, Vec2f origin) {
+		this.sub(origin);
+
+		double x1 = Math.cos(angle)*x - Math.sin(angle)*y;
+		double y1 = Math.sin(angle)*x + Math.cos(angle)*y;
+
+		x = (float)x1;
+		y = (float)y1;
+
+		this.add(origin);
+
+		return this;
+	}
+
+	/**
 	 * Compares this vector to another vector.
 	 * @param o the other vector
 	 * @return true if the two vectors are numerically equal

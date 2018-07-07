@@ -135,7 +135,7 @@ public class GameRanking extends BasicGameState {
 
 		// buttons
 		replayButton.draw();
-		if (data.isGameplay() && !GameMod.AUTO.isActive())
+		if (data.isGameplay() && !GameMod.AUTO.isActive()  && !GameMod.AUTODANCE.isActive())
 			retryButton.draw();
 		UI.getBackButton().draw(g);
 
@@ -193,7 +193,7 @@ public class GameRanking extends BasicGameState {
 		Game gameState = (Game) game.getState(Opsu.STATE_GAME);
 		boolean returnToGame = false;
 		boolean replayButtonPressed = replayButton.contains(x, y);
-		if (replayButtonPressed && !(data.isGameplay() && GameMod.AUTO.isActive())) {
+		if (replayButtonPressed && !(data.isGameplay() && (GameMod.AUTO.isActive() || GameMod.AUTODANCE.isActive()))) {
 			if (replay != null) {
 				gameState.setReplay(replay);
 				gameState.setPlayState((data.isGameplay()) ? Game.PlayState.REPLAY : Game.PlayState.FIRST_LOAD);
@@ -204,8 +204,8 @@ public class GameRanking extends BasicGameState {
 
 		// retry
 		else if (data.isGameplay() &&
-		         (!GameMod.AUTO.isActive() && retryButton.contains(x, y)) ||
-		         (GameMod.AUTO.isActive() && replayButtonPressed)) {
+		         (!GameMod.AUTO.isActive() && !GameMod.AUTODANCE.isActive() && retryButton.contains(x, y)) ||
+		         (GameMod.AUTO.isActive() && !GameMod.AUTODANCE.isActive() && replayButtonPressed)) {
 			gameState.setReplay(null);
 			gameState.setPlayState(Game.PlayState.RETRY);
 			returnToGame = true;
@@ -236,7 +236,7 @@ public class GameRanking extends BasicGameState {
 		} else {
 			SoundController.playSound(SoundEffect.APPLAUSE);
 			retryButton.resetHover();
-			if (GameMod.AUTO.isActive()) {
+			if (GameMod.AUTO.isActive() || GameMod.AUTODANCE.isActive()) {
 				replayButton.setY(retryY);
 				animationProgress.setTime(animationProgress.getDuration());
 			} else {

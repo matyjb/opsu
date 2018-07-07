@@ -236,6 +236,8 @@ public enum GameMod {
 				speedMultiplier = 1.5f;
 			else if (HALF_TIME.isActive())
 				speedMultiplier = 0.75f;
+			else if (AUTODANCE.isActive()) // for testing
+				speedMultiplier = 0.5f;
 			else
 				speedMultiplier = 1f;
 		}

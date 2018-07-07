@@ -242,7 +242,7 @@ public class Spinner implements GameObject {
 		// TODO: verify ratios
 		int result;
 		float ratio = rotations / rotationsNeeded;
-		if (ratio >= 1.0f || GameMod.AUTO.isActive() || GameMod.AUTOPILOT.isActive() || GameMod.SPUN_OUT.isActive()) {
+		if (ratio >= 1.0f || GameMod.AUTO.isActive() || GameMod.AUTOPILOT.isActive() || GameMod.SPUN_OUT.isActive() || GameMod.AUTODANCE.isActive()) {
 			result = GameData.HIT_300;
 			if (!Options.isGameplaySoundDisabled())
 				SoundController.playSound(SoundEffect.SPINNEROSU);
@@ -282,10 +282,10 @@ public class Spinner implements GameObject {
 		deltaOverflow += delta;
 
 		float angleDiff = 0;
-		if (GameMod.AUTO.isActive()) {
+		if (GameMod.AUTO.isActive() || GameMod.AUTODANCE.isActive()) {
 			angleDiff = delta * AUTO_MULTIPLIER;
 			isSpinning = true;
-		} else if (GameMod.SPUN_OUT.isActive() || GameMod.AUTOPILOT.isActive()) {
+		} else if (GameMod.SPUN_OUT.isActive() || GameMod.AUTOPILOT.isActive() || GameMod.AUTODANCE.isActive()) {
 			angleDiff = delta * SPUN_OUT_MULTIPLIER;
 			isSpinning = true;
 		} else {
@@ -359,7 +359,7 @@ public class Spinner implements GameObject {
 			timeDiff = trackPosition - hitObject.getTime();
 
 		// calculate point
-		float multiplier = (GameMod.AUTO.isActive()) ? AUTO_MULTIPLIER : SPUN_OUT_MULTIPLIER;
+		float multiplier = (GameMod.AUTO.isActive() || GameMod.AUTODANCE.isActive()) ? AUTO_MULTIPLIER : SPUN_OUT_MULTIPLIER;
 		float angle = (timeDiff * multiplier) - HALF_PI;
 		final float r = height / 10f;
 		return new Vec2f((float) (x + r * Math.cos(angle)), (float) (y + r * Math.sin(angle)));

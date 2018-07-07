@@ -1466,6 +1466,10 @@ public class SongMenu extends BasicGameState {
 			if (GameMod.AUTO.isActive())
 				GameMod.AUTO.toggle(false);
 
+			// turn off "autodance" mod
+			if (GameMod.AUTODANCE.isActive())
+				GameMod.AUTODANCE.toggle(false);
+
 			// re-sort (in case play count updated)
 			if (BeatmapSortOrder.current() == BeatmapSortOrder.PLAYS) {
 				BeatmapSetNode oldFocusBase = BeatmapSetList.get().getBaseNode(focusNode.index);
@@ -2013,10 +2017,16 @@ public class SongMenu extends BasicGameState {
 			return;
 		}
 
-		// turn on "auto" mod if holding "ctrl" key
-		if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
+		// turn on "auto" mod if holding "Rctrl" key
+		if (input.isKeyDown(Input.KEY_RCONTROL)) {
 			if (!GameMod.AUTO.isActive())
 				GameMod.AUTO.toggle(true);
+		}
+
+		// turn on "autodance" mod if holding "Lctrl" key
+		if (input.isKeyDown(Input.KEY_LCONTROL)) {
+			if (!GameMod.AUTODANCE.isActive())
+				GameMod.AUTODANCE.toggle(true);
 		}
 
 		SoundController.playSound(SoundEffect.MENUHIT);
