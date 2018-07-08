@@ -46,6 +46,7 @@ import itdelatrisu.opsu.objects.curves.Bezier2;
 import itdelatrisu.opsu.objects.curves.FakeCombinedCurve;
 import itdelatrisu.opsu.objects.curves.Vec2f;
 import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.options.Options.GameOption;
 import itdelatrisu.opsu.render.FrameBufferCache;
 import itdelatrisu.opsu.replay.LifeFrame;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
@@ -514,6 +515,7 @@ public class Game extends BasicGameState {
 			} else if (objectIndex < beatmap.objects.length) {
 				// normal object
 				int objectTime = beatmap.objects[objectIndex].getTime();
+				int objectTimeNext = beatmap.objects[objectIndex+1].getTime();
 				if (trackPosition < objectTime) {
 					Vec2f startPoint = gameObjects[objectIndex - 1].getPointAt(trackPosition);
 					int startTime = gameObjects[objectIndex - 1].getEndTime();
@@ -544,21 +546,45 @@ public class Game extends BasicGameState {
 							float progressInCurve = (objectTime - trackPosition) / (float)totalTime;
 
 							// calculate control points
-							double rotation = Math.PI/2;
-							float scale = 1.3f;
-							float l = gameObjects[objectIndex].getPointAt(startTime).cpy().sub(gameObjects[objectIndex-1].getPointAt(objectTime)).len();
-							if(l<100){
-								rotation = 0;
-								scale = 0.45f;
-							}
-							Vec2f cp1 = endPoint.cpy().sub(startPoint).scale(scale).rotate(rotation).add(startPoint);
-							Vec2f cp2 = endPointNext.cpy().sub(endPoint).scale(scale).rotate(rotation + Math.PI).add(endPoint);
-							
+							int circleDiameter = GameImage.HITCIRCLE.getImage().getWidth();
+							int playFieldSize = height;
 
-							if( beatmap.objects[objectIndex-1].isSlider() )
-								cp1 = gameObjects[objectIndex-1].getPointAt(startTime-10).cpy().rotate(Math.PI,startPoint).sub(startPoint).scale(100).add(startPoint);
-							if( beatmap.objects[objectIndex].isSlider() )
-								cp2 = gameObjects[objectIndex].getPointAt(objectTime+10).cpy().rotate(Math.PI,endPoint).sub(endPoint).scale(100).add(endPoint);
+							float distanceBetweenHitObjects = gameObjects[objectIndex].getPointAt(objectTime).cpy().sub(gameObjects[objectIndex-1].getPointAt(startTime)).len();
+							double p1 = -distanceBetweenHitObjects * distanceBetweenHitObjects + playFieldSize * distanceBetweenHitObjects - circleDiameter * playFieldSize + circleDiameter * circleDiameter;
+							double q1 = playFieldSize * playFieldSize / 2 - 2 * circleDiameter * playFieldSize + 2 * circleDiameter * circleDiameter;
+							double rotation1 = Math.PI * p1 / q1;
+							float distanceBetweenHitObjectsNext = gameObjects[objectIndex+1].getPointAt(objectTimeNext).cpy().sub(gameObjects[objectIndex].getPointAt(objectTime)).len();
+							double p2 = -distanceBetweenHitObjectsNext * distanceBetweenHitObjectsNext + playFieldSize * distanceBetweenHitObjectsNext - circleDiameter * playFieldSize + circleDiameter * circleDiameter;
+							double q2 = playFieldSize * playFieldSize / 2 - 2 * circleDiameter * playFieldSize + 2 * circleDiameter * circleDiameter;
+							double rotation2 = Math.PI * p2 / q2 + Math.PI;
+
+							float scaleScaler = Math.min((objectTime-startTime)/800.0f, 1f);
+							float scale = 0.4f;
+							if(distanceBetweenHitObjects < 4 * circleDiameter / 5){
+								rotation1 = rotation2 = 0;
+								scale = 0.45f * scaleScaler;
+							}
+							Vec2f cp1 = endPoint.cpy().sub(startPoint).scale(scale).rotate(rotation1).add(startPoint);
+							Vec2f cp2 = endPointNext.cpy().sub(endPoint).scale(scale).rotate(rotation2).add(endPoint);
+							
+							//float scl = 500;
+							if( beatmap.objects[objectIndex-1].isSlider() ){
+								// float alfa = beatmap.objects[objectIndex-1].getSliderCurve(true).getEndAngle();
+								// alfa = (alfa + 180)*(float)Math.PI/180.0f; //to radians
+								// cp1 = startPoint.cpy().add(scl*(float)Math.cos(alfa),scl*(float)Math.sin(alfa));
+								//cp1 = gameObjects[objectIndex-1].getPointAt(startTime-50).cpy().rotate(Math.PI,startPoint).sub(startPoint).scale(scale*20).add(startPoint);
+
+								Vec2f[] curvePoints = beatmap.objects[objectIndex-1].getSliderCurve(true).getCurvePoints();
+								cp1 = curvePoints[curvePoints.length-2].cpy().sub(startPoint).nor().rotate(Math.PI/2).scale(20).add(startPoint);
+							}
+							if( beatmap.objects[objectIndex].isSlider() ){
+								// float alfa = beatmap.objects[objectIndex].getSliderCurve(true).getStartAngle();
+								// alfa = (alfa + 180)*(float)Math.PI/180.0f; //to radians
+								// cp2 = startPoint.cpy().add(scl*(float)Math.cos(alfa),scl*(float)Math.sin(alfa));
+								//cp2 = gameObjects[objectIndex].getPointAt(objectTime+50).cpy().rotate(Math.PI,endPoint).sub(endPoint).scale(scale*20).add(endPoint);
+								Vec2f[] curvePoints = beatmap.objects[objectIndex].getSliderCurve(true).getCurvePoints();
+								cp2 = curvePoints[1].cpy().sub(endPoint).nor().rotate(Math.PI/2).scale(20).add(endPoint);
+							}
 							
 							Vec2f[] controlPoints = {startPoint, cp1, cp2,endPoint};
 	
@@ -568,8 +594,12 @@ public class Game extends BasicGameState {
 							
 							g.setColor(Colors.GREEN);
 							float tmp = width/70;
-							g.fillOval(cp1.x-tmp, cp1.y-tmp, tmp,tmp);
-							g.fillOval(cp2.x-tmp, cp2.y-tmp, tmp,tmp);
+							g.fillOval(cp1.x-tmp/2, cp1.y-tmp/2, tmp,tmp);
+							g.fillOval(cp2.x-tmp/2, cp2.y-tmp/2, tmp,tmp);
+
+							g.drawLine(startPoint.x-tmp/2, startPoint.y-tmp/2, cp1.x-tmp/2, cp1.y-tmp/2);
+							g.drawLine(cp1.x-tmp/2, cp1.y-tmp/2, cp2.x-tmp/2, cp2.y-tmp/2);
+							g.drawLine(cp2.x-tmp/2, cp2.y-tmp/2, endPoint.x-tmp/2, endPoint.y-tmp/2);
 
 							
 							//autoPoint = getPointAt(startPoint.x, startPoint.y, endPoint.x, endPoint.y, (float) (trackPosition - startTime) / totalTime);
