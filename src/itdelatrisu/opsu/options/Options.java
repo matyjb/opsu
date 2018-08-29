@@ -969,7 +969,7 @@ public class Options {
 	private static Skin skin;
 
 	/** Frame limiters. */
-	private static final int[] targetFPS = { 60, 120, 240, -1 /* Unlimited */ };
+	private static final int[] targetFPS = { 60, 120, 240, 480, -1 /* Unlimited */ };
 
 	/** Index in targetFPS[] array. */
 	private static int targetFPSindex = 0;

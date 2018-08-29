@@ -28,6 +28,7 @@ import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.awt.Point;
 import java.nio.IntBuffer;
+import java.time.LocalDateTime;
 import java.util.LinkedList;
 
 import org.lwjgl.BufferUtils;
@@ -159,7 +160,9 @@ public class Cursor {
 
 		// TODO: use an image buffer
 		int removeCount = 0;
-		float FPSmod = Math.max(container.getFPS(), 1) / 60f;
+		// float FPSmod = Math.max(container.getFPS(), 1) / 60f;
+		float FPSmod = Math.max(container.getFPS(), 1) / 480f;
+		// float FPSmod = 1;
 		if (cursorMiddle != null) {
 			// new style: add all points between cursor movements
 			if (lastPosition == null) {
@@ -169,7 +172,8 @@ public class Cursor {
 			addCursorPoints(lastPosition.x, lastPosition.y, mouseX, mouseY);
 			lastPosition.move(mouseX, mouseY);
 
-			removeCount = (int) (trail.size() / (6 * FPSmod)) + 1;
+			// removeCount = (int) (trail.size() / (15 * FPSmod)) + 1;
+			removeCount = (int) (trail.size() / (container.getFPS() / 4 * FPSmod)) + 1;
 		} else {
 			// old style: sample one point at a time
 			trail.add(new Point(mouseX, mouseY));
@@ -178,10 +182,12 @@ public class Cursor {
 			if (trail.size() > max)
 				removeCount = trail.size() - max;
 		}
-
 		// remove points from the lists
 		for (int i = 0; i < removeCount && !trail.isEmpty(); i++)
 			trail.remove();
+		// while(trail.size() > 100) {
+		// 	trail.remove();
+		// }
 
 		// draw a fading trail
 		float alpha = 0f;
@@ -235,7 +241,7 @@ public class Cursor {
 		int ix = x1 < x2 ? 1 : -1;  // increment direction
 		int iy = y1 < y2 ? 1 : -1;
 
-		int k = 5;  // sample size
+		int k = 1;  // sample size
 		if (dy <= dx) {
 			for (int i = 0; ; i++) {
 				if (i == k) {

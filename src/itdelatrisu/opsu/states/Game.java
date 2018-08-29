@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import itdelatrisu.opsu.AutodanceMod;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameImage;
@@ -67,6 +68,7 @@ import itdelatrisu.opsu.video.Video;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
@@ -343,6 +345,9 @@ public class Game extends BasicGameState {
 	private Input input;
 	private final int state;
 
+	// AutoDance
+	private AutodanceMod autodanceMod;
+
 	public Game(int state) {
 		this.state = state;
 		inputOverlayKeys = new InputOverlayKey[] {
@@ -382,6 +387,8 @@ public class Game extends BasicGameState {
 
 		// create the associated GameData object
 		data = new GameData(width, height);
+		
+		autodanceMod = new AutodanceMod();
 	}
 
 	@Override
@@ -497,7 +504,7 @@ public class Game extends BasicGameState {
 		}
 
 		// "autodance" mod: move cursor automatically (special move)	
-		if (GameMod.AUTODANCE.isActive()) {
+		if (/*GameMod.AUTODANCE.isActive()*/false) {
 			Vec2f autoPoint = null;
 			if (gameFinished) {
 				// game finished, do nothing
@@ -623,6 +630,43 @@ public class Game extends BasicGameState {
 			// set mouse coordinates
 			if (autoPoint != null)
 				autoMousePosition.set(autoPoint.x, autoPoint.y);
+		}
+
+		if (GameMod.AUTODANCE.isActive()) {
+			autodanceMod.center = new Vec2f(width/2, height/2);
+			autodanceMod.circleSize = GameImage.HITCIRCLE.getImage().getWidth();
+			autodanceMod.controlPointsVectorsScale = 0.6f;
+			autodanceMod.gameObjects = gameObjects;
+			autodanceMod.hitObjects = beatmap.objects;
+			autodanceMod.trackPosition = trackPosition;
+			autodanceMod.g = g;
+			int betterObjectIndex = autodanceMod.autoDanceModObjectIndex;
+			autodanceMod.Update();
+
+			Vec2f autoPoint = new Vec2f(width/2, height/2);
+			if(betterObjectIndex < beatmap.objects.length){
+				if (trackPosition < beatmap.objects[betterObjectIndex].getTime()) {
+					if (isLeadIn()) {
+						// lead-in
+						float progress = Math.max((float) (leadInTime - beatmap.audioLeadIn) / approachTime, 0f);
+						autoMousePosition.y = height / (2f - progress);
+					} else {
+						
+						autoPoint = autodanceMod.ComputePosition(false);
+					}
+				// } else if (betterObjectIndex-1 >= 0 && !(gameObjects[betterObjectIndex-1].getEndTime() > trackPosition)){
+				// 	autoPoint = gameObjects[betterObjectIndex-1].getPointAt(trackPosition);
+				// 	autoMousePressed = true;
+				} else {
+					autoPoint = gameObjects[betterObjectIndex].getPointAt(trackPosition);
+					autoMousePressed = true;
+				}
+			}
+
+			// set mouse coordinates
+			if (autoPoint != null)
+				autoMousePosition.set(autoPoint.x, autoPoint.y);
+
 		}
 
 		// "flashlight" mod: restricted view of hit objects around cursor
@@ -1612,7 +1656,7 @@ public class Game extends BasicGameState {
 		FrameBufferCache.getInstance().freeMap();
 
 		// grab the mouse (not working for touchscreen)
-//		container.setMouseGrabbed(true);
+		//		container.setMouseGrabbed(true);
 
 		// restart the game
 		if (playState != PlayState.NORMAL) {
@@ -1807,7 +1851,7 @@ public class Game extends BasicGameState {
 	@Override
 	public void leave(GameContainer container, StateBasedGame game)
 			throws SlickException {
-//		container.setMouseGrabbed(false);
+		//		container.setMouseGrabbed(false);
 
 		// re-hide cursor
 		if (GameMod.AUTO.isActive() || isReplay || GameMod.AUTODANCE.isActive())
@@ -1983,10 +2027,10 @@ public class Game extends BasicGameState {
 		this.beatmap = beatmap;
 		Display.setTitle(String.format("%s - %s", game.getTitle(), beatmap.toString()));
 		if (beatmap.timingPoints == null)
-			BeatmapDB.load(beatmap, BeatmapDB.LOAD_ARRAY);
+		BeatmapDB.load(beatmap, BeatmapDB.LOAD_ARRAY);
 		BeatmapParser.parseHitObjects(beatmap);
 		HitSound.setDefaultSampleSet(beatmap.sampleSet);
-
+		
 		Utils.gc(true);
 	}
 
@@ -2030,6 +2074,7 @@ public class Game extends BasicGameState {
 		}
 		videoSeekTime = 0;
 		mergedSlider = null;
+		autodanceMod = new AutodanceMod();
 	}
 
 	/**
